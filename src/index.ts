@@ -7,8 +7,11 @@ import searchLocationRoute from "./routes/search-location"
 import cookieSession from "cookie-session"
 import dotEnv from "dotenv"
 import mysql from "mysql2"
+import cors from 'cors'
 
 const app = express()
+
+app.use(cors({}));
 
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json())
@@ -43,6 +46,7 @@ const start = async () => {
     }
   })
 }
+
 app.use("/api", authRoute)
 app.use("/api", searchLocationRoute)
 
