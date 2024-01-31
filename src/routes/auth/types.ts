@@ -1,4 +1,4 @@
-interface SignupBodyRequest extends Omit<User, "timestamp" | "id" | "account_verifyed" | "last_login" | "role"> {}
+interface SignupBodyRequest extends Omit<User, "timestamp" | "id" | "account_verifyed" | "last_login" |"role"> {}
 
 interface LoginBodyRequest {
   email?: string
@@ -12,16 +12,14 @@ export interface SignupRequest extends Express.Request {
 export interface User {
   timestamp: Date
   id: string
-  first_name: string
-  last_name: string
+  firstName: string
+  lastName: string
   email: string
   password: string
   account_verified: boolean
-  last_login: string | null
-  role: string
+  last_login: Date | null
+  role: "business" | "user" |"guest" | "employee" | "N/A"
   phone: string
-  lat: number
-  lon: number
 }
 
 export interface LoginRequest extends Express.Request {

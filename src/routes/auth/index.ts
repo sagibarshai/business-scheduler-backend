@@ -23,65 +23,60 @@ if (!jwt_secret) {
   throw new Error("jwt_secret is not defined")
 }
 
+
 router.post(
   "/signup",
-  body("first_name").isLength({ min: 2, max: 64 }).withMessage("first_name must be min 2 chars and max 64 chars"),
-  body("last_name").isLength({ min: 2, max: 64 }).withMessage("last_name must be min 2 chars and max 64 chars"),
   body("email").isLength({ min: 6, max: 64 }).isEmail().withMessage("email must be valid with max of 64 chars"),
   body("password").isLength({ min: 8, max: 24 }).withMessage("password must be min 8 chars and max 24 chars"),
+  body("firstName").isLength({ min: 2, max: 64 }).withMessage("first_name must be min 2 chars and max 64 chars"),
+  body("lastName").isLength({ min: 2, max: 64 }).withMessage("last_name must be min 2 chars and max 64 chars"),
   body("phone")
-    .isLength({ min: 10, max: 15 })
-    .withMessage("phone number must be valid with min 10 chars and max 15 chars"),
+  .isLength({ min: 10, max: 15 })
+  .withMessage("phone number must be valid with min 10 chars and max 15 chars"),
   async (req: SignupRequest, res): Promise<Express.Response> => {
     const errors = validationResult(req)
     if (!errors.isEmpty()) return res.status(400).json({ message: errors.array() })
-
     try {
       const connection = await pool.getConnection()
 
-      const { email, first_name, last_name, password, phone, lat, lon } = req.body
+      const { email, firstName, lastName, password, phone} = req.body
 
-      if (!password || !email || !first_name || !last_name || !phone) return res.status(400).json({})
 
       const [rows] = await connection.execute("SELECT * FROM users WHERE email = ?", [email])
 
       const users = rows as User[]
       const emailExist = Boolean(users.find((user) => user["email"] === email))
-
-      if (emailExist) return res.status(400).json({ message: "Email is in use." })
+      
+      if (emailExist) return res.status(400).json({message:'האימייל שהוזן כבר בשימוש'})
 
       const hashedPassword = await toHash(password)
 
       const user: User = {
         id: crypto.randomUUID(),
         timestamp: new Date(),
-        first_name,
-        last_name,
+        firstName,
+        lastName,
         email,
         password: hashedPassword,
-        phone,
-        last_login: null,
+        phone: phone,
+        last_login: new Date(),
         account_verified: false,
-        role: "user",
-        lat,
-        lon,
+        role: 'N/A',
       }
 
       await connection.execute(
-        "INSERT INTO users (id, timestamp, first_name, last_name, email, password, phone, last_login, account_verified, role, lat, lon) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        "INSERT INTO users (id, timestamp, first_name, last_name, email, password, phone, last_login, account_verified, role) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
         [
           user["id"],
           user["timestamp"],
-          user["first_name"],
-          user["last_name"],
+          user["firstName"],
+          user["lastName"],
           user["email"],
           user["password"],
           user["phone"],
           user["last_login"],
           user["account_verified"],
           user["role"],
-          user["lat"],
-          user["lon"],
         ],
       )
       const token = jwt.sign(user, jwt_secret)
@@ -110,15 +105,30 @@ router.post(
       const [rows] = await pool.execute("SELECT * FROM users WHERE email = ? ", [email])
       const users = rows as User[]
 
+
       const user = users.find((user) => user["email"] === email)
 
       if (!user) return res.status(400).json({ message: "Wrong credentials" })
 
+
+     
+     await pool.execute("UPDATE users SET last_login = ? WHERE id = ?",[new Date(),user.id]) 
       const isEqual = await compare(password!, user["password"])
       if (!isEqual) return res.status(400).json({ message: "Wrong credentials" })
 
       const token = jwt.sign(user, jwt_secret)
-      return res.status(200).json({ user, token })
+
+      const clientUser: Omit<User, 'password' | 'timestamp'> = {
+          account_verified:user.account_verified,
+          email:user.email,
+          firstName:user.firstName,
+          lastName:user.lastName,
+          last_login:user.last_login,
+          id:user.id,
+          phone:user.phone,
+          role:user.role,
+      }
+      return res.status(200).json({ user:clientUser, token })
     } catch (err) {
       console.log(err)
       return res.status(500).json({ message: "something went wrong.." })
