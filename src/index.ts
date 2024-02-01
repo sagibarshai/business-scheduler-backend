@@ -5,6 +5,7 @@ import bodyParser from "body-parser"
 import authRoute from "./routes/auth"
 import searchLocationRoute from "./routes/search-location"
 import userRoute from "./routes/user"
+import categoriesRoute from "./routes/business/categories"
 import cookieSession from "cookie-session"
 import dotEnv from "dotenv"
 import mysql from "mysql2"
@@ -51,5 +52,6 @@ const start = async () => {
 app.use("/api/auth", authRoute)
 app.use("/api", userRoute)
 app.use("/api", searchLocationRoute)
+app.use("/api", categoriesRoute)
 
 app.listen(3300, start)

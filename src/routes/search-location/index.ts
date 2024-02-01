@@ -1,15 +1,18 @@
 import express, { Request, Response, text } from 'express'
 import { pool } from '../../db'
 import axios from 'axios'
+import { currentUserMiddleware } from '../auth'
 
 const router = express.Router()
 
 const googlePlacesKey = process.env.google_places_api_key
 if(!googlePlacesKey) throw new Error('google_places_api_key must be defied')
 
-router.get('/search-location', async(req:Request,res:Response) => {
+router.get('/search-location',
+//  currentUserMiddleware,
+  async(req:Request,res:Response) => {
     const input = req.query.input
-    if(!input) return res.json({}).status(400)
+    if(!input) return res.status(400).json({})
     try {
         const [rows] = await pool.execute('SELECT * FROM locations WHERE text = ?',[input])
         const storedLocations = rows as Record<string,any>
@@ -28,7 +31,7 @@ router.get('/search-location', async(req:Request,res:Response) => {
                 ])
                 return res.status(201).json({locations})
             }
-            else return res.json({}).status(500)
+            else return res.status(500).json({})
         }
         else {
             console.log('from cache', storedLocations[0].results)
@@ -36,7 +39,7 @@ router.get('/search-location', async(req:Request,res:Response) => {
 
     }catch(err) {
         console.log('err ', err)
-        return res.json({}).status(500)
+        return res.status(500).json({})
     }
 })
 

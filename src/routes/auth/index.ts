@@ -139,10 +139,10 @@ router.post(
 export const currentUserMiddleware = (req: any, res: any, next: any) => {
   const userToken: string | undefined = req["headers"]?.authorization?.split(" ")[1]
 
-  if (!userToken) return res.json({ message: "Token not provided" }).status(401)
+  if (!userToken) return res.status(401).json({ message: "Token not provided" })
 
   jwt.verify(userToken, jwt_secret, (err, user) => {
-    if (err) return res.json({ error: "Token not valid" }).status(500)
+    if (err) return res.json.status(500)({ error: "Token not valid" })
     req.user = user
 
     next()

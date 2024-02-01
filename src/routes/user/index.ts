@@ -17,21 +17,21 @@ interface SetRoleRequest extends Request  {
 router.put('/user/set-role' ,body('role').exists() , currentUserMiddleware,async(req:SetRoleRequest,res:Response) => {
     const role = req.body.role
     const user = req.user
-    if(!user) return res.json({}).status(401)
+    if(!user) return res.status(401).json({})
 
     if(role === 'business' || role === 'employee' || role === 'guest' || role=== 'user') {
         try {
             const [rows] = await pool.execute('UPDATE users SET role = ? WHERE id = ? ', [role,user.id])
             
-            return res.json({}).status(201)
+            return res.status(201).json({})
 
         }
         catch(err) {
             console.log('err ', err)
-            return res.json({}).status(500)
+            return res.status(500).json({})
         }
     }
-    else return res.json({}).status(400)
+    else return res.status(400).json({})
     
 })
 
