@@ -3,7 +3,7 @@ import { currentUserMiddleware } from "../../auth"
 import { param } from "express-validator";
 
 const router = Router()
-interface SubCategory {
+export interface SubCategory {
   defaultTime: { hours: number; minutes: number }
   price: number
   name: string
@@ -51,20 +51,17 @@ const categories: category[] = [
 ]
 
 router.get("/business/categories-options", 
-// currentUserMiddleware,
+currentUserMiddleware,
  (req: Request, res: Response) => {
-
-
   res.status(200).json({ categories })
 })
 
 
 router.post("/business/sub-categories-options", 
 
-// currentUserMiddleware,
+currentUserMiddleware,
  (req: SubCategoriesRequest, res: Response) => {
   const bodyCategories = req.body?.categories
-  console.log('bodyCategories ', bodyCategories)
 
 
   const subCategories:SubCategory[][] = []

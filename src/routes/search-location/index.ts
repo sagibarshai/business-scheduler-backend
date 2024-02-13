@@ -9,7 +9,7 @@ const googlePlacesKey = process.env.google_places_api_key
 if(!googlePlacesKey) throw new Error('google_places_api_key must be defied')
 
 router.get('/search-location',
-//  currentUserMiddleware,
+ currentUserMiddleware,
   async(req:Request,res:Response) => {
     const input = req.query.input
     if(!input) return res.status(400).json({})
