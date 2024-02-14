@@ -36,5 +36,10 @@ router.put('/user/set-role' ,body('role').exists() , currentUserMiddleware,async
 })
 
 
+router.get('/user', currentUserMiddleware, async(req:Request,res:Response) => {
+    const user = req.user
+    return res.status(200).json({user})
+})
+
 
 export default router

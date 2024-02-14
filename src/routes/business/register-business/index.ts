@@ -44,7 +44,7 @@ router.post('/business/register', currentUserMiddleware, async (req: RegisterBus
 
     if (!address || !phone || !category || !name || !profileImg || !subCategories.length || !workingDayAndHours.length)
         return res.status(400).json({ message: 'Not valid' });
-
+  
     try {
         let query = '';
         let params: any[] = [];

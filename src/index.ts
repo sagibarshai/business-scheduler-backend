@@ -7,6 +7,7 @@ import searchLocationRoute from "./routes/search-location"
 import userRoute from "./routes/user"
 import categoriesRoute from "./routes/business/categories"
 import registerBusinessRoute from "./routes/business/register-business"
+import getBusinessRoute from "./routes/business/get-business"
 import cookieSession from "cookie-session"
 import dotEnv from "dotenv"
 import mysql from "mysql2"
@@ -44,8 +45,8 @@ const start = async () => {
   pool.getConnection((err, connection) => {
     // if (err) throw new Error("db not connected " + err)
     // else {
-      connection.release()
-      console.log("server up (port 3300)")
+      // connection.release()
+      console.log("server up (port 4000)")
     // }
   })
 }
@@ -55,5 +56,6 @@ app.use("/api", userRoute)
 app.use("/api", searchLocationRoute)
 app.use("/api", categoriesRoute)
 app.use("/api", registerBusinessRoute)
+app.use("/api", getBusinessRoute)
 
-app.listen(3300, start)
+app.listen(4000, start)

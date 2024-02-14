@@ -139,22 +139,19 @@ router.post(
 export const currentUserMiddleware = (req: any, res: any, next: any) => {
   const userToken: string | undefined = req["headers"]?.authorization?.split(" ")[1]
   if (!userToken) return res.status(401).json({ message: "Token not provided" })
-
-  jwt.verify(userToken, jwt_secret, (err, user) => {
-    if (err) return res.json.status(500)({ error: "Token not valid" })
-    req.user = user
-
-    next()
-    return
-  })
+  else {
+    jwt.verify(userToken, jwt_secret, (err, user) => {
+      if (err) {
+        return res.status(401).json({ error: "Token not valid" })
+      }
+      req.user = user
+      
+      next()
+      return
+    })
+  }
 }
 
-router.get("/users/all", currentUserMiddleware, async (req, res) => {
-  console.log(req.user)
 
-  const [rows] = await pool.execute("SELECT * FROM users")
-  const users = rows as User[]
-  return res.status(200).json({ users })
-})
 
 export default router
