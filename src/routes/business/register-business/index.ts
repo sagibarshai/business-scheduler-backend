@@ -5,7 +5,12 @@ import { pool } from "../../../db";
 
 const router = Router();
 
-export interface Img {file_type: 'jpeg' | 'jpg' | 'png', base64: string, size: string; img_type: 'profile' | 'cover' | 'regular'}
+export interface Img {
+    file_type: 'jpeg' | 'jpg' | 'png';
+    base64: string;
+    size: string;
+    img_type: 'profile' | 'cover' | 'regular';
+}
 
 export type Days = {
     name: string;
@@ -42,10 +47,12 @@ router.post('/business/register', currentUserMiddleware, async (req: RegisterBus
     const coverImg = req.body.coverImg;
     const regularImgs = req.body.regularImgs;
 
-    if (!address || !phone || !category || !name || !profileImg || !subCategories.length || !workingDayAndHours.length)
+
+    if (!address || !phone || !category || !name || !profileImg || !subCategories.length || !workingDayAndHours.length) 
         return res.status(400).json({ message: 'Not valid' });
   
     try {
+
         let query = '';
         let params: any[] = [];
         const [existingBusinessData] = await pool.execute(`SELECT * FROM business_data WHERE id = ?`, [user.id]);
@@ -70,8 +77,11 @@ router.post('/business/register', currentUserMiddleware, async (req: RegisterBus
 
         if (coverImg) await updateOrInsertImage(user.id, coverImg, 'cover');
 
+        await pool.execute(`DELETE FROM business_images WHERE id = ? AND img_type = 'regular'`, [user.id]);
         if (regularImgs?.length) {
-            await pool.execute(`DELETE FROM business_images WHERE id = ? AND img_type = 'regular'`, [user.id]);
+            // Delete all existing regular images associated with the user ID
+            
+            // Insert each regular image from the array individually
             for (const img of regularImgs) {
                 await updateOrInsertImage(user.id, img, 'regular');
             }
@@ -87,21 +97,34 @@ router.post('/business/register', currentUserMiddleware, async (req: RegisterBus
 async function updateOrInsertImage(userId: string, img: Img, imgType: 'profile' | 'cover' | 'regular') {
     try {
         const currentTimeStamp = new Date();
-        const [existingImage] = await pool.execute(`SELECT * FROM business_images WHERE id = ? AND img_type = ?`, [userId, imgType]);
-      //@ts-ignore
-        if (existingImage.length > 0) {
-            await pool.execute(`UPDATE business_images SET file_type = ?, base64 = ?, size = ?, updated_at = ? WHERE id = ? AND img_type = ?`, [
-                img.file_type, img.base64, img.size, currentTimeStamp, userId, imgType
-            ]);
-        } else {
-            await pool.execute(`INSERT INTO business_images (id, file_type, base64, size, img_type, timestamp, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)`, [
-                userId, img.file_type, img.base64, img.size, imgType, currentTimeStamp, currentTimeStamp
-            ]);
+
+        if(img.img_type !=='regular') {
+            // profile and cover imgs
+            
+            const [existingImage] = await pool.execute(`SELECT * FROM business_images WHERE id = ? AND img_type = ?`, [userId, imgType]);
+
+            //@ts-ignore
+            if (existingImage?.length > 0) {
+                await pool.execute(`UPDATE business_images SET type = ?, base64 = ?, size = ?, updated_at = ? WHERE id = ? AND img_type = ?`, [
+                    img.file_type, img.base64, img.size, currentTimeStamp, userId, imgType
+                ]);
+            } else {
+                await pool.execute(`INSERT INTO business_images (id, type, base64, size, img_type, timestamp, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)`, [
+                    userId, img.file_type, img.base64, img.size, imgType, currentTimeStamp, currentTimeStamp
+                ]);
+            }
         }
-    } catch (err) {
-        console.log('Error updating/inserting image:', err);
-        throw err;
-    }
+        else {
+                await pool.execute(`INSERT INTO business_images (id, type, base64, size, img_type, timestamp, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)`, [
+                    userId, img.file_type, img.base64, img.size, imgType, currentTimeStamp, currentTimeStamp
+                ]);
+
+        }
+        } catch (err) {
+            console.log('Error updating/inserting image:', err);
+            throw err;
+        }
 }
+
 
 export default router;
